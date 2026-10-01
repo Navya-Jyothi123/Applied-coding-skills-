@@ -1,0 +1,30 @@
+class Solution {
+    public int leastInterval(char[] tasks, int n) {
+
+        int[] freq = new int[26];
+
+        // Count each task
+        for (char task : tasks) {
+            freq[task - 'A']++;
+        }
+
+        // Find the highest frequency
+        int max = 0;
+        for (int f : freq) {
+            max = Math.max(max, f);
+        }
+
+        // Number of tasks having maximum frequency
+        int countMax = 0;
+        for (int f : freq) {
+            if (f == max) {
+                countMax++;
+            }
+        }
+
+        int result = (max - 1) * (n + 1) + countMax;
+
+        // Cannot be smaller than number of actual tasks
+        return Math.max(result, tasks.length);
+    }
+}
