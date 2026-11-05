@@ -1,0 +1,104 @@
+
+import java.util.*;
+
+class Solution {
+
+    int[] parent;
+    int[] rank;
+
+    // Find operation with path compression
+    public int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    // Union operation with rank
+    public void union(int x, int y) {
+        int px = find(x);
+        int py = find(y);
+
+        if (px == py) {
+            return;
+        }
+
+        if (rank[px] < rank[py]) {
+            parent[px] = py;
+        } 
+        else if (rank[px] > rank[py]) {
+            parent[py] = px;
+        } 
+        else {
+            parent[py] = px;
+            rank[px]++;
+        }
+    }
+
+    public List<List<String>> accountsMerge(
+            List<List<String>> accounts) {
+
+        int n = accounts.size();
+
+        parent = new int[n];
+        rank = new int[n];
+
+        // Initialize DSU
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            rank[i] = 0;
+        }
+
+        // Map email to account index
+        Map<String, Integer> emailToId = new HashMap<>();
+
+        // Step 1: Merge accounts sharing emails
+        for (int i = 0; i < n; i++) {
+
+            List<String> account = accounts.get(i);
+
+            for (int j = 1; j < account.size(); j++) {
+
+                String email = account.get(j);
+
+                if (emailToId.containsKey(email)) {
+                    union(i, emailToId.get(email));
+                } 
+                else {
+                    emailToId.put(email, i);
+                }
+            }
+        }
+
+        // Step 2: Group emails by root account
+        Map<Integer, List<String>> groups = new HashMap<>();
+
+        for (String email : emailToId.keySet()) {
+
+            int root = find(emailToId.get(email));
+
+            groups.putIfAbsent(root, new ArrayList<>());
+
+            groups.get(root).add(email);
+        }
+
+        // Step 3: Sort emails and construct result
+        List<List<String>> result = new ArrayList<>();
+
+        for (int root : groups.keySet()) {
+
+            List<String> emails = groups.get(root);
+
+            Collections.sort(emails);
+
+            List<String> mergedAccount = new ArrayList<>();
+
+            mergedAccount.add(accounts.get(root).get(0));
+            mergedAccount.addAll(emails);
+
+            result.add(mergedAccount);
+        }
+
+        return result;
+    }
+}

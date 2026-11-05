@@ -1,0 +1,184 @@
+
+class Solution {
+
+    public int[] sortItems(
+        int n,
+        int m,
+        int[] group,
+        List<List<Integer>> beforeItems
+    ) {
+
+        // Step 1: Assign unique groups to ungrouped items
+        for (int i = 0; i < n; i++) {
+            if (group[i] == -1) {
+                group[i] = m++;
+            }
+        }
+
+        // Step 2: Create item and group graphs
+        List<List<Integer>> itemGraph = new ArrayList<>();
+        List<List<Integer>> groupGraph = new ArrayList<>();
+
+        for (int i = 0; i < n; i++) {
+            itemGraph.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < m; i++) {
+            groupGraph.add(new ArrayList<>());
+        }
+
+        int[] itemIndegree = new int[n];
+        int[] groupIndegree = new int[m];
+
+        // Step 3: Build both graphs
+        for (int i = 0; i < n; i++) {
+
+            for (int prev : beforeItems.get(i)) {
+
+                // Item dependency
+                itemGraph.get(prev).add(i);
+                itemIndegree[i]++;
+
+                // Group dependency
+                if (group[prev] != group[i]) {
+
+                    groupGraph.get(group[prev]).add(group[i]);
+
+                    groupIndegree[group[i]]++;
+                }
+            }
+        }
+
+        // Step 4: Topological sort groups
+        List<Integer> groupOrder =
+            topoSort(groupGraph, groupIndegree);
+
+        if (groupOrder.size() != m) {
+            return new int[0];
+        }
+
+        // Step 5: Collect items belonging to each group
+        List<List<Integer>> groupItems = new ArrayList<>();
+
+        for (int i = 0; i < m; i++) {
+            groupItems.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < n; i++) {
+            groupItems.get(group[i]).add(i);
+        }
+
+        // Step 6: Topological sort items inside each group
+        List<Integer> result = new ArrayList<>();
+
+        for (int g : groupOrder) {
+
+            List<Integer> items = groupItems.get(g);
+
+            if (items.isEmpty()) {
+                continue;
+            }
+
+            // Build local graph for this group
+            List<List<Integer>> localGraph = new ArrayList<>();
+
+            int[] localIndegree = new int[n];
+
+            for (int i = 0; i < n; i++) {
+                localGraph.add(new ArrayList<>());
+            }
+
+            for (int item : items) {
+
+                for (int next : itemGraph.get(item)) {
+
+                    if (group[next] == g) {
+
+                        localGraph.get(item).add(next);
+
+                        localIndegree[next]++;
+                    }
+                }
+            }
+
+            // Topological sort within the group
+            Queue<Integer> queue = new LinkedList<>();
+
+            for (int item : items) {
+
+                if (localIndegree[item] == 0) {
+                    queue.offer(item);
+                }
+            }
+
+            int count = 0;
+
+            while (!queue.isEmpty()) {
+
+                int curr = queue.poll();
+
+                result.add(curr);
+                count++;
+
+                for (int next : localGraph.get(curr)) {
+
+                    localIndegree[next]--;
+
+                    if (localIndegree[next] == 0) {
+                        queue.offer(next);
+                    }
+                }
+            }
+
+            // Cycle detected inside this group
+            if (count != items.size()) {
+                return new int[0];
+            }
+        }
+
+        // Step 7: Convert result to array
+        int[] ans = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            ans[i] = result.get(i);
+        }
+
+        return ans;
+    }
+
+    // Kahn's Algorithm
+    private List<Integer> topoSort(
+        List<List<Integer>> graph,
+        int[] indegree
+    ) {
+
+        Queue<Integer> queue = new LinkedList<>();
+
+        List<Integer> order = new ArrayList<>();
+
+        for (int i = 0; i < indegree.length; i++) {
+
+            if (indegree[i] == 0) {
+                queue.offer(i);
+            }
+        }
+
+        while (!queue.isEmpty()) {
+
+            int curr = queue.poll();
+
+            order.add(curr);
+
+            for (int neighbor : graph.get(curr)) {
+
+                indegree[neighbor]--;
+
+                if (indegree[neighbor] == 0) {
+                    queue.offer(neighbor);
+                }
+            }
+        }
+
+        return order;
+    }
+}
