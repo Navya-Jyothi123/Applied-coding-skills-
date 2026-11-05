@@ -1,0 +1,78 @@
+import java.util.*;
+
+class Solution {
+
+    class Pair {
+        TreeNode node;
+        int row;
+        int col;
+
+        Pair(TreeNode node, int row, int col) {
+            this.node = node;
+            this.row = row;
+            this.col = col;
+        }
+    }
+
+    public List<List<Integer>> verticalTraversal(TreeNode root) {
+
+        List<List<Integer>> result = new ArrayList<>();
+
+        if (root == null) {
+            return result;
+        }
+
+        // Column -> Row -> Min Heap
+        TreeMap<Integer, TreeMap<Integer, PriorityQueue<Integer>>> map
+            = new TreeMap<>();
+
+        Queue<Pair> queue = new LinkedList<>();
+
+        queue.offer(new Pair(root, 0, 0));
+
+        while (!queue.isEmpty()) {
+
+            Pair current = queue.poll();
+
+            TreeNode node = current.node;
+            int row = current.row;
+            int col = current.col;
+
+            // Create column and row if they don't exist
+            map.putIfAbsent(col, new TreeMap<>());
+
+            map.get(col).putIfAbsent(row, new PriorityQueue<>());
+
+            // Store node value
+            map.get(col).get(row).offer(node.val);
+
+            // Left child
+            if (node.left != null) {
+                queue.offer(new Pair(node.left, row + 1, col - 1));
+            }
+
+            // Right child
+            if (node.right != null) {
+                queue.offer(new Pair(node.right, row + 1, col + 1));
+            }
+        }
+
+        // Construct final answer
+        for (TreeMap<Integer, PriorityQueue<Integer>> rows
+                : map.values()) {
+
+            List<Integer> column = new ArrayList<>();
+
+            for (PriorityQueue<Integer> values : rows.values()) {
+
+                while (!values.isEmpty()) {
+                    column.add(values.poll());
+                }
+            }
+
+            result.add(column);
+        }
+
+        return result;
+    }
+}
