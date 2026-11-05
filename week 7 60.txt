@@ -1,0 +1,57 @@
+
+class Solution {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+
+        // Step 1: Create adjacency list
+        List<List<Integer>> adj = new ArrayList<>();
+
+        for (int i = 0; i < numCourses; i++) {
+            adj.add(new ArrayList<>());
+        }
+
+        int[] indegree = new int[numCourses];
+
+        // Step 2: Build graph
+        for (int[] p : prerequisites) {
+
+            int course = p[0];
+            int prerequisite = p[1];
+
+            adj.get(prerequisite).add(course);
+
+            indegree[course]++;
+        }
+
+        // Step 3: Add courses with indegree 0
+        Queue<Integer> queue = new LinkedList<>();
+
+        for (int i = 0; i < numCourses; i++) {
+
+            if (indegree[i] == 0) {
+                queue.offer(i);
+            }
+        }
+
+        // Step 4: BFS
+        int completed = 0;
+
+        while (!queue.isEmpty()) {
+
+            int curr = queue.poll();
+
+            completed++;
+
+            for (int neighbor : adj.get(curr)) {
+
+                indegree[neighbor]--;
+
+                if (indegree[neighbor] == 0) {
+                    queue.offer(neighbor);
+                }
+            }
+        }
+
+        // Step 5: Check if all courses are completed
+        return completed == numCourses;
+    }
+}

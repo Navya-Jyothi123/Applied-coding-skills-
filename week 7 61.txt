@@ -1,0 +1,64 @@
+
+class Solution {
+    public int[] findOrder(int numCourses, int[][] prerequisites) {
+
+        // Step 1: Create adjacency list
+        List<List<Integer>> adj = new ArrayList<>();
+
+        for (int i = 0; i < numCourses; i++) {
+            adj.add(new ArrayList<>());
+        }
+
+        int[] indegree = new int[numCourses];
+
+        // Step 2: Build graph
+        for (int[] p : prerequisites) {
+
+            int course = p[0];
+            int prerequisite = p[1];
+
+            adj.get(prerequisite).add(course);
+
+            indegree[course]++;
+        }
+
+        // Step 3: Add courses with indegree 0
+        Queue<Integer> queue = new LinkedList<>();
+
+        for (int i = 0; i < numCourses; i++) {
+
+            if (indegree[i] == 0) {
+                queue.offer(i);
+            }
+        }
+
+        // Step 4: BFS / Topological Sort
+        int[] result = new int[numCourses];
+
+        int index = 0;
+
+        while (!queue.isEmpty()) {
+
+            int curr = queue.poll();
+
+            result[index++] = curr;
+
+            // Process neighboring courses
+            for (int neighbor : adj.get(curr)) {
+
+                indegree[neighbor]--;
+
+                if (indegree[neighbor] == 0) {
+                    queue.offer(neighbor);
+                }
+            }
+        }
+
+        // Step 5: Check for cycle
+        if (index != numCourses) {
+            return new int[0];
+        }
+
+        return result;
+    }
+}

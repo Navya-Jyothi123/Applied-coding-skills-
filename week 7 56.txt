@@ -1,0 +1,85 @@
+
+class Solution {
+    public int orangesRotting(int[][] grid) {
+
+        int m = grid.length;
+        int n = grid[0].length;
+
+        Queue<int[]> queue = new LinkedList<>();
+
+        int fresh = 0;
+
+        // Step 1: Add all rotten oranges to queue
+        // Count fresh oranges
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+
+                if (grid[i][j] == 2) {
+                    queue.offer(new int[]{i, j});
+                }
+                else if (grid[i][j] == 1) {
+                    fresh++;
+                }
+            }
+        }
+
+        // No fresh oranges
+        if (fresh == 0) {
+            return 0;
+        }
+
+        // Four directions: up, down, left, right
+        int[][] directions = {
+            {-1, 0},
+            {1, 0},
+            {0, -1},
+            {0, 1}
+        };
+
+        int minutes = 0;
+
+        // Step 2: Multi-source BFS
+        while (!queue.isEmpty()) {
+
+            int size = queue.size();
+            boolean rotted = false;
+
+            // Process one level at a time
+            for (int i = 0; i < size; i++) {
+
+                int[] curr = queue.poll();
+
+                int row = curr[0];
+                int col = curr[1];
+
+                // Check all four directions
+                for (int[] dir : directions) {
+
+                    int nr = row + dir[0];
+                    int nc = col + dir[1];
+
+                    // Check boundaries and fresh orange
+                    if (nr >= 0 && nr < m &&
+                        nc >= 0 && nc < n &&
+                        grid[nr][nc] == 1) {
+
+                        grid[nr][nc] = 2;
+
+                        fresh--;
+                        rotted = true;
+
+                        queue.offer(new int[]{nr, nc});
+                    }
+                }
+            }
+
+            // Increment time only if at least one orange rotted
+            if (rotted) {
+                minutes++;
+            }
+        }
+
+        // Step 3: Check if all fresh oranges became rotten
+        return fresh == 0 ? minutes : -1;
+    }
+}
