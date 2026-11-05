@@ -1,0 +1,34 @@
+import java.util.*;
+
+class Solution {
+    public int kthSmallest(TreeNode root, int k) {
+
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode curr = root;
+
+        int count = 0;
+
+        while (curr != null || !stack.isEmpty()) {
+
+            // Go to the leftmost node
+            while (curr != null) {
+                stack.push(curr);
+                curr = curr.left;
+            }
+
+            // Process current node
+            curr = stack.pop();
+            count++;
+
+            // Check kth smallest
+            if (count == k) {
+                return curr.val;
+            }
+
+            // Move to right subtree
+            curr = curr.right;
+        }
+
+        return -1;
+    }
+}
